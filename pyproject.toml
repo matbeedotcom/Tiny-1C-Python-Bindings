@@ -15,7 +15,7 @@ readme = "README_python.md"
 requires-python = ">=3.6"
 license = {text = "MIT"}
 authors = [
-    {name = "Thermal Camera SDK", email = ""},
+    {name = "Thermal Camera SDK", email = "mail@matbee.com"},
 ]
 keywords = ["thermal", "camera", "temperature", "imaging", "P2", "Tiny1C"]
 classifiers = [
