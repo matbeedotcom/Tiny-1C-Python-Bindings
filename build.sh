@@ -55,7 +55,7 @@ echo ""
 echo "Cleaning previous builds..."
 rm -rf build/
 rm -f *.so
-rm -f thermal_camera_simple*.so
+rm -f tiny_thermal_camera*.so
 
 echo ""
 echo "Building C++ sample application..."
@@ -68,8 +68,8 @@ python3 setup_simple.py build_ext --inplace
 
 echo ""
 echo "Verifying build..."
-if [ -f thermal_camera_simple*.so ]; then
-    echo "✓ Python module built successfully: $(ls thermal_camera_simple*.so)"
+if [ -f tiny_thermal_camera*.so ]; then
+    echo "✓ Python module built successfully: $(ls tiny_thermal_camera*.so)"
 else
     echo "✗ Python module build failed"
     exit 1
@@ -84,5 +84,5 @@ echo "To test the Python bindings, run:"
 echo "  python3 test_simple.py"
 echo ""
 echo "To use in your own Python scripts:"
-echo "  import thermal_camera_simple"
+echo "  import tiny_thermal_camera"
 echo ""

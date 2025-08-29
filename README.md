@@ -38,7 +38,7 @@ pip install .
 ### Quick Start
 
 ```python
-from thermal_camera_simple import SimpleThermalCamera
+from tiny_thermal_camera import SimpleThermalCamera
 
 # Context manager automatically handles open/close
 with SimpleThermalCamera() as camera:
@@ -108,7 +108,7 @@ Features:
 ### Simple Test
 
 ```bash
-python3 thermal_camera_simple.py
+python3 tiny_thermal_camera.py
 ```
 
 Basic functionality test with temperature statistics.

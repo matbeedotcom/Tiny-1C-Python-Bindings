@@ -96,11 +96,11 @@ Runs demo with automatic permission fixing.
 
 ### Basic Example
 ```python
-import thermal_camera_simple
+import tiny_thermal_camera
 import numpy as np
 
 # Open camera
-camera = thermal_camera_simple.ThermalCamera()
+camera = tiny_thermal_camera.ThermalCamera()
 camera.initialize()
 camera.open()
 
@@ -109,7 +109,7 @@ camera.start_stream(enable_temperature_mode=True, wait_seconds=5)
 
 # Get temperature data
 raw_frame = camera.get_raw_frame()
-temp_celsius = np.vectorize(thermal_camera_simple.temp_to_celsius)(raw_frame)
+temp_celsius = np.vectorize(tiny_thermal_camera.temp_to_celsius)(raw_frame)
 
 print(f"Temperature range: {temp_celsius.min():.1f}°C - {temp_celsius.max():.1f}°C")
 
@@ -120,7 +120,7 @@ camera.close()
 
 ### Advanced Usage with SimpleThermalCamera wrapper
 ```python
-from thermal_camera_simple import SimpleThermalCamera
+from tiny_thermal_camera import SimpleThermalCamera
 
 with SimpleThermalCamera() as camera:
     if camera.start_streaming():
@@ -148,7 +148,7 @@ sudo udevadm control --reload-rules
 ./build.sh
 
 # Check if .so file exists
-ls -la thermal_camera_simple*.so
+ls -la tiny_thermal_camera*.so
 ```
 
 ### Camera Not Detected
@@ -187,7 +187,7 @@ The camera needs proper initialization:
 │   ├── test_simple.py              # Basic test
 │   ├── test_continuous.py          # Continuous monitoring
 │   ├── thermal_camera_demo.py      # Full demo
-│   └── thermal_camera_simple.py    # Python wrapper
+│   └── tiny_thermal_camera.py    # Python wrapper
 │
 ├── C++ Source
 │   ├── sample.cpp                  # C++ sample

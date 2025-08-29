@@ -18,9 +18,9 @@ import sys
 import time
 import numpy as np
 try:
-    import thermal_camera
+    import tiny_thermal_camera
 except ImportError:
-    print("Error: thermal_camera module not found. Please build and install first:")
+    print("Error: tiny_thermal_camera module not found. Please build and install first:")
     print("python3 setup.py build_ext --inplace")
     sys.exit(1)
 
@@ -42,8 +42,8 @@ except ImportError:
 
 class ThermalCameraDemo:
     def __init__(self):
-        self.camera = thermal_camera.ThermalCamera()
-        self.temp_processor = thermal_camera.TemperatureProcessor()
+        self.camera = tiny_thermal_camera.ThermalCamera()
+        self.temp_processor = tiny_thermal_camera.TemperatureProcessor()
         
     def initialize_camera(self):
         """Initialize and open the thermal camera"""
@@ -92,7 +92,7 @@ class ThermalCameraDemo:
         print(f"Temperature range: {temp_frame.min()} - {temp_frame.max()} (raw values)")
         
         # Convert raw values to Celsius for display
-        temp_celsius = np.vectorize(thermal_camera.temp_to_celsius)(temp_frame)
+        temp_celsius = np.vectorize(tiny_thermal_camera.temp_to_celsius)(temp_frame)
         print(f"Temperature range: {temp_celsius.min():.1f}°C - {temp_celsius.max():.1f}°C")
         
         # Get image frame if available
@@ -210,7 +210,7 @@ class ThermalCameraDemo:
                 
                 # Analyze every 10th frame
                 if frame_count % 10 == 0:
-                    temp_celsius = np.vectorize(thermal_camera.temp_to_celsius)(temp_frame)
+                    temp_celsius = np.vectorize(tiny_thermal_camera.temp_to_celsius)(temp_frame)
                     height, width = temp_frame.shape
                     center_temp = temp_celsius[height//2, width//2]
                     

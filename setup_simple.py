@@ -22,7 +22,7 @@ opencv_cflags, opencv_libs = get_opencv_flags()
 # Define the extension module
 ext_modules = [
     Pybind11Extension(
-        "thermal_camera_simple",
+        "tiny_thermal_camera",
         sources=[
             "python_bindings_simple.cpp",
         ],
@@ -66,7 +66,7 @@ ext_modules = [
 ]
 
 setup(
-    name="thermal_camera_simple",
+    name="tiny_thermal_camera",
     version="1.0.0",
     author="Thermal Camera Python Bindings",
     author_email="",

@@ -8,7 +8,7 @@ echo "Thermal Camera Demo Runner"
 echo "========================================="
 
 # Check if Python module is built
-if ! ls thermal_camera_simple*.so 1> /dev/null 2>&1; then
+if ! ls tiny_thermal_camera*.so 1> /dev/null 2>&1; then
     echo "Python module not found. Building..."
     ./build.sh
 fi

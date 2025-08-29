@@ -11,9 +11,9 @@ import numpy as np
 from datetime import datetime
 
 try:
-    import thermal_camera_simple
+    import tiny_thermal_camera
 except ImportError:
-    print("Error: thermal_camera_simple module not found")
+    print("Error: tiny_thermal_camera module not found")
     print("Run: ./build.sh")
     sys.exit(1)
 
@@ -31,7 +31,7 @@ def main():
     print("=== Thermal Camera Continuous Monitor ===")
     print("Press Ctrl+C to stop\n")
     
-    camera = thermal_camera_simple.ThermalCamera()
+    camera = tiny_thermal_camera.ThermalCamera()
     
     try:
         # Initialize and open camera
@@ -71,7 +71,7 @@ def main():
             current_time = time.time() - start_time
             
             # Convert to Celsius
-            temp_celsius = np.vectorize(thermal_camera_simple.temp_to_celsius)(raw_frame)
+            temp_celsius = np.vectorize(tiny_thermal_camera.temp_to_celsius)(raw_frame)
             
             # Calculate statistics
             center_y, center_x = temp_celsius.shape[0]//2, temp_celsius.shape[1]//2

@@ -25,12 +25,12 @@ link_directories(
 )
 
 # Python module
-pybind11_add_module(thermal_camera_simple 
+pybind11_add_module(tiny_thermal_camera 
     python_bindings_simple.cpp
 )
 
 # Link libraries
-target_link_libraries(thermal_camera_simple PRIVATE
+target_link_libraries(tiny_thermal_camera PRIVATE
     iruvc
     irtemp
     irprocess
@@ -41,13 +41,13 @@ target_link_libraries(thermal_camera_simple PRIVATE
 )
 
 # Set rpath
-set_target_properties(thermal_camera_simple PROPERTIES
+set_target_properties(tiny_thermal_camera PROPERTIES
     INSTALL_RPATH "${CMAKE_CURRENT_SOURCE_DIR}/libs/linux/x86-linux_libs"
     BUILD_WITH_INSTALL_RPATH TRUE
 )
 
 # Compile definitions
-target_compile_definitions(thermal_camera_simple PRIVATE
+target_compile_definitions(tiny_thermal_camera PRIVATE
     IMAGE_AND_TEMP_OUTPUT
     linux
 )
@@ -82,7 +82,7 @@ target_compile_definitions(sample PRIVATE
 )
 
 # Install targets
-install(TARGETS thermal_camera_simple
+install(TARGETS tiny_thermal_camera
     LIBRARY DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

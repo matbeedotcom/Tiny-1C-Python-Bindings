@@ -16,7 +16,7 @@ rm -rf build/
 rm -rf dist/
 rm -rf *.egg-info
 rm -f *.so
-rm -f thermal_camera_simple*.so
+rm -f tiny_thermal_camera*.so
 rm -f thermal_camera*.so
 
 # Clean Python cache

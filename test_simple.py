@@ -8,18 +8,18 @@ import time
 import numpy as np
 
 try:
-    import thermal_camera_simple
+    import tiny_thermal_camera
 except ImportError as e:
-    print(f"Error importing thermal_camera_simple: {e}")
+    print(f"Error importing tiny_thermal_camera: {e}")
     print("Make sure to build the extension first:")
-    print("python3 setup_simple.py build_ext --inplace")
+    print("python3 setup.py build_ext --inplace")
     sys.exit(1)
 
 def main():
     print("=== Thermal Camera Simple Test ===")
     
     # Create camera instance
-    camera = thermal_camera_simple.ThermalCamera()
+    camera = tiny_thermal_camera.ThermalCamera()
     # TemperatureProcessor is a static class, no need to instantiate
     
     try:
@@ -79,12 +79,12 @@ def main():
             print(f"Raw data range: {raw_frame.min()} - {raw_frame.max()}")
             
             # Convert to temperature
-            temp_celsius = np.vectorize(thermal_camera_simple.temp_to_celsius)(raw_frame)
+            temp_celsius = np.vectorize(tiny_thermal_camera.temp_to_celsius)(raw_frame)
             print(f"Temperature range: {temp_celsius.min():.1f}°C - {temp_celsius.max():.1f}°C")
             
             # Get center point temperature
             center_x, center_y = raw_frame.shape[1] // 2, raw_frame.shape[0] // 2
-            success, center_temp = thermal_camera_simple.TemperatureProcessor.get_point_temp(raw_frame, center_x, center_y)
+            success, center_temp = tiny_thermal_camera.TemperatureProcessor.get_point_temp(raw_frame, center_x, center_y)
             if success:
                 print(f"Center temperature: {center_temp:.1f}°C")
             
@@ -92,7 +92,7 @@ def main():
             area_size = 20
             area_x = center_x - area_size // 2
             area_y = center_y - area_size // 2
-            success, max_temp, min_temp, avg_temp = thermal_camera_simple.TemperatureProcessor.get_rect_temp(
+            success, max_temp, min_temp, avg_temp = tiny_thermal_camera.TemperatureProcessor.get_rect_temp(
                 raw_frame, area_x, area_y, area_size, area_size)
             if success:
                 print(f"Central {area_size}x{area_size} area:")
