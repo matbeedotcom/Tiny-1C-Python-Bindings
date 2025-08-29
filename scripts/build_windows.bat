@@ -44,6 +44,9 @@ if exist dist rmdir /s /q dist
 if exist *.egg-info rmdir /s /q *.egg-info
 del /q tiny_thermal_camera*.pyd 2>nul
 
+REM Change to parent directory for build
+cd ..
+
 REM Build the extension
 echo.
 echo Building extension module...
@@ -68,7 +71,7 @@ echo Build completed successfully!
 echo ============================================
 echo.
 echo To test the installation, run:
-echo   python test_simple.py
+echo   python tests/test_simple.py
 echo.
 echo To install system-wide:
 echo   python setup_crossplatform.py install

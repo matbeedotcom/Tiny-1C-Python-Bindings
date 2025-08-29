@@ -264,7 +264,7 @@ def prepare_dll_package():
     # Run the DLL collection script
     try:
         import subprocess
-        result = subprocess.run([sys.executable, 'setup_dll_collection.py'], 
+        result = subprocess.run([sys.executable, 'scripts/setup_dll_collection.py'], 
                               capture_output=True, text=True)
         if result.returncode != 0:
             print(f"Warning: DLL collection failed: {result.stderr}")
@@ -273,8 +273,8 @@ def prepare_dll_package():
         print(f"Warning: Could not run DLL collection: {e}")
         return []
     
-    # Check if tiny_thermal_camera package was created
-    package_dir = Path("tiny_thermal_camera")
+    # Check if src/tiny_thermal_camera package was updated
+    package_dir = Path("src/tiny_thermal_camera")
     if package_dir.exists():
         print("DLL package prepared successfully")
         return ["tiny_thermal_camera"]
@@ -293,15 +293,19 @@ def main():
     if cross_compile:
         print(f"Cross-compiling for: {cross_compile}")
     
-    # Prepare DLL package for Windows
-    packages = prepare_dll_package()
+    # Prepare DLL package for Windows (if needed)
+    prepare_dll_package()
+    
+    # Find packages in src directory
+    packages = find_packages(where="src")
+    package_dir = {"": "src"}
     
     # Create extension module
     ext_modules = [create_extension(system, arch)]
     
     # Package data for DLL inclusion
     package_data = {}
-    if packages:
+    if packages and "tiny_thermal_camera" in packages:
         package_data["tiny_thermal_camera"] = ["dlls/*.dll", "libs/*.lib"]
     
     # Run setup
@@ -324,6 +328,7 @@ def main():
         - Automatic DLL management on Windows
         """,
         packages=packages,
+        package_dir=package_dir,
         package_data=package_data,
         include_package_data=True,
         ext_modules=ext_modules,

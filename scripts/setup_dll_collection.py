@@ -17,8 +17,8 @@ def collect_windows_dlls():
     arch_dir = 'x64' if is_64bit else 'Win32'
     
     # Source and destination paths
-    source_base = Path("libs/win")
-    dest_dir = Path("tiny_thermal_camera/dlls")
+    source_base = Path("../libs/win")  # Adjust for scripts directory
+    dest_dir = Path("../src/tiny_thermal_camera/dlls")
     dest_dir.mkdir(parents=True, exist_ok=True)
     
     print(f"Target architecture: {arch_dir}")
@@ -62,7 +62,7 @@ def collect_windows_dlls():
                 print(f"  [MISSING] {dll_name} - NOT FOUND")
     
     # Also copy import libraries for linking
-    lib_dest_dir = Path("tiny_thermal_camera/libs")
+    lib_dest_dir = Path("../src/tiny_thermal_camera/libs")
     lib_dest_dir.mkdir(parents=True, exist_ok=True)
     
     for dll_name in thermal_dlls:
@@ -85,8 +85,8 @@ def main():
         return
     
     # Clean up previous DLL collections (but keep __init__.py)
-    dll_dir = Path("tiny_thermal_camera/dlls")
-    lib_dir = Path("tiny_thermal_camera/libs")
+    dll_dir = Path("../src/tiny_thermal_camera/dlls")
+    lib_dir = Path("../src/tiny_thermal_camera/libs")
     if dll_dir.exists():
         shutil.rmtree(dll_dir)
     if lib_dir.exists():
@@ -97,7 +97,7 @@ def main():
     
     print(f"\n=== Collection Complete ===")
     print(f"[SUCCESS] {len(dll_files)} DLLs ready for packaging")
-    print("Note: tiny_thermal_camera/__init__.py already exists for DLL loading")
+    print("Note: src/tiny_thermal_camera/__init__.py already exists for DLL loading")
     print("Next: Update setup.py to include tiny_thermal_camera package")
 
 if __name__ == "__main__":
