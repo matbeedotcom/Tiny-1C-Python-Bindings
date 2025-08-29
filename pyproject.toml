@@ -8,7 +8,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "thermal-camera-sdk"
+name = "tiny-thermal-camera"
 version = "1.0.0"
 description = "Python bindings for P2/Tiny1C thermal camera SDK"
 readme = "README.md"
@@ -53,20 +53,20 @@ visualization = [
     "matplotlib>=3.0.0",
 ]
 all = [
-    "thermal-camera-sdk[dev,visualization]",
+    "tiny-thermal-camera[dev,visualization]",
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/thermal-camera-sdk"
-Documentation = "https://github.com/yourusername/thermal-camera-sdk/blob/main/README_python.md"
-Repository = "https://github.com/yourusername/thermal-camera-sdk.git"
-"Bug Tracker" = "https://github.com/yourusername/thermal-camera-sdk/issues"
+Homepage = "https://github.com/matbeedotcom/Tiny-1C-Python-Bindings"
+Documentation = "https://github.com/matbeedotcom/Tiny-1C-Python-Bindings/blob/main/README.md"
+Repository = "https://github.com/matbeedotcom/Tiny-1C-Python-Bindings.git"
+"Bug Tracker" = "https://github.com/matbeedotcom/Tiny-1C-Python-Bindings/issues"
 
 [tool.setuptools]
-packages = []
-py-modules = []
+packages = ["tiny_thermal_camera"]
 
 [tool.setuptools.package-data]
+"tiny_thermal_camera" = ["dlls/*.dll", "libs/*.lib", "libs/*.so"]
 "*" = ["*.so", "*.pyd", "*.dll"]
 
 [tool.cibuildwheel]

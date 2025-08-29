@@ -2,6 +2,7 @@ README.md
 pyproject.toml
 python_bindings_tiny.cpp
 setup.py
+setup_crossplatform.py
 thermal_camera_sdk.egg-info/PKG-INFO
 thermal_camera_sdk.egg-info/SOURCES.txt
 thermal_camera_sdk.egg-info/dependency_links.txt

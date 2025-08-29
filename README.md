@@ -1,42 +1,65 @@
 # Tiny Thermal Camera Python Bindings
 
-Python bindings for the AC010_256 thermal camera SDK, supporting P2/Tiny1C thermal cameras.
+Cross-platform Python bindings for the AC010_256 thermal camera SDK, supporting P2/Tiny1C thermal cameras on Windows, Linux (x86, ARM, MIPS), and macOS.
 
 ## Features
 
+- **Cross-Platform Support**: Windows, Linux (x86, ARM, MIPS), and macOS
 - **Camera Control**: Open/close camera, start/stop streaming
 - **Temperature Measurement**: Point, line, and area temperature analysis  
 - **Real-time Data**: Get temperature and image frames as NumPy arrays
 - **Easy Integration**: Simple Python API with context manager support
-- **Self-Contained**: No runtime library dependencies to manage
+- **Self-Contained**: Automatic DLL/library management - no manual setup required
+- **Architecture Support**: Multiple ARM and MIPS variants for embedded systems
 - **Comprehensive Examples**: Demo scripts and utilities included
 
 ## Installation
 
-### Prerequisites
+### Simple Installation
 
 ```bash
-# Install system dependencies (OpenCV and libusb are required)
-sudo apt update
-sudo apt install libopencv-dev libusb-1.0-0-dev pkg-config build-essential python3-dev
+# Install from PyPI (when available)
+pip install tiny-thermal-camera
 
-# Python dependencies are installed automatically
-```
-
-### Build and Install
-
-```bash
-# Option 1: Development install (recommended)
-pip install -e .
-
-# Option 2: Build in-place for development
-python3 setup.py build_ext --inplace
-
-# Option 3: Regular install
+# Or install from source
 pip install .
 ```
 
-The module automatically handles all thermal camera library dependencies through static linking - no additional library path setup needed!
+**That's it!** The package automatically:
+- Detects your platform (Windows/Linux/macOS) and architecture (x86/ARM/MIPS)
+- Includes all necessary libraries and DLLs
+- Sets up runtime library loading
+- No manual library management required!
+
+### Platform-Specific Notes
+
+#### Windows
+- All required DLLs are automatically included and loaded
+- No additional Visual C++ Redistributable installation needed
+- Supports both 32-bit and 64-bit Python
+
+#### Linux
+- Static library linking used by default (no runtime dependencies)
+- Supports x86, ARM (various variants), and MIPS architectures
+- Cross-compilation supported via environment variables
+
+#### Cross-Compilation (Advanced)
+```bash
+# Example: Cross-compile for ARM
+export CROSS_COMPILE=arm-linux-gnueabihf
+export TARGET_ARCH=arm
+pip install .
+```
+
+### Development Installation
+
+```bash
+# Development install with editable mode
+pip install -e .
+
+# Build in-place for development
+python setup.py build_ext --inplace
+```
 
 ## Usage
 
@@ -248,63 +271,94 @@ finally:
 
 ## Troubleshooting
 
-### Camera Not Found
+### Installation Issues
+
+#### Import Errors
 ```bash
-# Check USB connection and device presence
-lsusb | grep 0bda:5840
-
-# Check USB permissions
-ls -la /dev/bus/usb/
-
-# Fix USB permissions (adjust bus/device numbers as needed)
-sudo chmod 666 /dev/bus/usb/*/007
-```
-
-### Build Errors
-```bash
-# Install missing dependencies
-sudo apt install libopencv-dev libusb-1.0-0-dev pkg-config build-essential python3-dev
-
-# Check OpenCV installation
-pkg-config opencv4 --cflags --libs
-
-# Clean and rebuild
-python3 setup.py clean --all
-pip install -e . --force-reinstall
-```
-
-### Import Errors
-```bash
-# Check if module is built
-ls -la tiny_thermal_camera*.so
-
 # Test basic import
-python3 -c "import tiny_thermal_camera; print('OK')"
+python -c "import tiny_thermal_camera; print('SUCCESS: Package installed correctly')"
 
-# Check for missing system libraries
-ldd tiny_thermal_camera*.so
+# If import fails, try reinstalling
+pip uninstall tiny-thermal-camera
+pip install tiny-thermal-camera --force-reinstall
 ```
 
-### Runtime Issues
-```bash
-# Check device initialization
-python3 -c "
+#### Windows DLL Issues
+- All required DLLs are automatically included
+- If you see "DLL load failed", ensure you're importing the installed package:
+```python
+# This should work from any directory
+import tiny_thermal_camera
+```
+
+### Camera Issues
+
+#### Camera Not Detected
+```python
+# Check for connected devices
 import tiny_thermal_camera
 camera = tiny_thermal_camera.ThermalCamera()
 success, devices = camera.get_device_list()
 print(f'Found {len(devices)} devices: {devices}')
-"
+```
 
-# Test basic camera operations
-python3 test_simple.py
+#### Linux USB Permissions
+```bash
+# Check USB connection and device presence  
+lsusb | grep 0bda:5840
+
+# Fix USB permissions if needed
+sudo chmod 666 /dev/bus/usb/*/*
+```
+
+#### Windows Device Access
+- Ensure camera drivers are installed
+- Check Device Manager for USB devices
+- Try different USB ports
+
+### Build Issues (Development)
+
+#### Missing Dependencies
+```bash
+# Linux: Install build tools
+sudo apt install build-essential python3-dev pkg-config
+
+# Install from source
+pip install . --verbose  # Shows detailed build output
+```
+
+#### Clean Rebuild
+```bash
+# Clean previous builds
+python setup.py clean --all
+pip install . --force-reinstall
+```
+
+### Runtime Issues
+```python
+# Test basic functionality
+import tiny_thermal_camera
+
+with tiny_thermal_camera.ThermalCamera() as camera:
+    if camera.start_streaming():
+        temp_frame, _ = camera.capture_frame()
+        if temp_frame is not None:
+            print("Camera working correctly!")
+        else:
+            print("Failed to capture frame")
+    else:
+        print("Failed to start streaming")
 ```
 
 ## Hardware Requirements
 
 - **Compatible Cameras**: P2 series, Tiny1C, AC010_256
 - **Connection**: USB interface (VID: 0x0BDA, PID: 0x5840)
-- **OS**: Linux (tested on Ubuntu 20.04+)
-- **Dependencies**: OpenCV, libusb-1.0 (automatically linked)
+- **Operating Systems**: 
+  - Windows (32-bit and 64-bit)
+  - Linux (x86, ARM, MIPS architectures)
+  - macOS (basic support)
+- **Dependencies**: All libraries automatically included - no manual installation
 - **Permissions**: USB device access required
 
 ## Notes for P2 Series Cameras
@@ -313,16 +367,29 @@ python3 test_simple.py
 - Temperature data requires `y16_preview_start` command (handled automatically)
 - 5-second stabilization wait recommended after starting stream
 - Temperature mode is enabled automatically when using `start_stream()`
-- All thermal camera libraries are statically linked - no runtime dependency issues
+- All thermal camera libraries are automatically managed - no runtime dependency issues
 
 ## Package Information
 
-- **Package Name**: `thermal-camera-sdk`
+- **Package Name**: `tiny-thermal-camera`
 - **Module Name**: `tiny_thermal_camera`
 - **Version**: 1.0.0
-- **Build System**: setuptools with pybind11
+- **Build System**: Cross-platform setuptools with pybind11
 - **Context Manager**: Built-in (no separate wrapper needed)
-- **Static Linking**: All thermal camera libraries embedded
+- **Library Management**: Automatic DLL/library loading for all platforms
+- **Architectures Supported**:
+  - Windows: x86, x64
+  - Linux: x86, ARM (multiple variants), MIPS
+  - Cross-compilation: Full toolchain support
+
+## Supported Linux Architectures
+
+- **x86**: Standard Intel/AMD processors
+- **ARM 64-bit**: aarch64-linux-gnu, aarch64-none-linux-gnu
+- **ARM 32-bit**: arm-linux-gnueabi, arm-linux-gnueabihf
+- **Embedded ARM**: arm-himix100-linux, arm-himix200-linux, arm-hisiv300/500-linux
+- **MIPS**: mips-linux-gnu (limited library support)
+- **Custom**: Support for buildroot and musl toolchains
 
 ## License
 

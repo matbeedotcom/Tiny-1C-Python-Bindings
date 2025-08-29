@@ -22,14 +22,9 @@ opencv_cflags, opencv_libs = get_opencv_flags()
 # Define the extension module
 ext_modules = [
     Pybind11Extension(
-        "thermal_camera",
+        "tiny_thermal_camera",
         sources=[
-            "python_bindings.cpp",
-            "camera.cpp",
-            "temperature.cpp",
-            "data.cpp",
-            "display.cpp",
-            "cmd.cpp",
+            "python_bindings_tiny.cpp",
         ],
         include_dirs=[
             # Path to pybind11 headers
@@ -39,16 +34,16 @@ ext_modules = [
             ".",
         ] + [flag[2:] for flag in opencv_cflags if flag.startswith('-I')],  # Extract -I paths
         
+        # Mix of static thermal libs and dynamic system libs
+        extra_objects=[
+            "./libs/linux/x86-linux_libs/libiruvc.a",
+            "./libs/linux/x86-linux_libs/libirtemp.a", 
+            "./libs/linux/x86-linux_libs/libirprocess.a",
+            "./libs/linux/x86-linux_libs/libirparse.a",
+        ],
+        
         libraries=[
-            "iruvc", "irtemp", "irprocess", "irparse", "pthread", "m"
-        ],
-        
-        library_dirs=[
-            "./libs/linux/x86-linux_libs",
-        ],
-        
-        runtime_library_dirs=[
-            "./libs/linux/x86-linux_libs",
+            "usb-1.0", "pthread", "m"  # Use system libusb instead of static
         ],
         
         language='c++',
@@ -56,6 +51,7 @@ ext_modules = [
         
         define_macros=[
             ("IMAGE_AND_TEMP_OUTPUT", None),  # Enable both image and temperature output
+            ("linux", None),
         ],
         
         extra_compile_args=[
@@ -64,26 +60,26 @@ ext_modules = [
         ] + [flag for flag in opencv_cflags if not flag.startswith('-I')],
         
         extra_link_args=[
-            "-Wl,-rpath,./libs/linux/x86-linux_libs",
-        ] + opencv_libs,
+            # Static linking - no rpath needed
+        ],
     ),
 ]
 
 setup(
-    name="thermal_camera",
+    name="thermal-camera-sdk",
     version="1.0.0",
     author="Thermal Camera Python Bindings",
     author_email="",
-    description="Python bindings for P2/Tiny1C thermal camera SDK",
+    description="Simplified Python bindings for P2/Tiny1C thermal camera SDK",
     long_description="""
-    Python bindings for the AC010_256 thermal camera SDK.
-    Supports P2/Tiny1C thermal cameras with temperature measurement capabilities.
+    Simplified Python bindings for the AC010_256 thermal camera SDK.
+    Supports P2/Tiny1C thermal cameras with basic functionality.
     
     Features:
-    - Camera control (open/close, start/stop streaming)
-    - Real-time temperature frame acquisition
-    - Point, line, and area temperature measurement
-    - NumPy array integration for easy data processing
+    - Basic camera control (open/close, start/stop streaming)
+    - Raw frame acquisition
+    - Basic temperature processing
+    - NumPy array integration
     """,
     ext_modules=ext_modules,
     extras_require={"test": "pytest"},
@@ -94,9 +90,8 @@ setup(
         "numpy>=1.15.0",
     ],
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",

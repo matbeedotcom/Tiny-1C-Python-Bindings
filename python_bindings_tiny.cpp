@@ -2,6 +2,11 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
+// When using pre-built libraries on Windows, we need to import symbols
+#ifdef _WIN32
+    #define DLLEXPORT __declspec(dllimport)
+#endif
+
 // Include only the header files - we'll link to the libraries
 #include "include/all_config.h"
 #include "include/libiruvc.h"
@@ -9,7 +14,15 @@
 #include "include/libirparse.h"
 #include "include/libirprocess.h"
 #include "include/thermal_cam_cmd.h"
-#include <unistd.h>  // for sleep()
+
+// Platform-specific includes for sleep
+#ifdef _WIN32
+    #include <windows.h>
+    #define platform_sleep(seconds) Sleep((seconds) * 1000)
+#else
+    #include <unistd.h>
+    #define platform_sleep(seconds) sleep(seconds)
+#endif
 
 namespace py = pybind11;
 
@@ -147,7 +160,7 @@ public:
         // For P2 series cameras, need to wait then send y16_preview_start command
         if (enable_temperature_mode) {
             printf("Waiting %d seconds for camera stabilization before enabling temperature mode...\n", wait_seconds);
-            sleep(wait_seconds);
+            platform_sleep(wait_seconds);
             
             // Send y16_preview_start command to switch to temperature data output
             printf("Sending y16_preview_start command to enable temperature mode...\n");

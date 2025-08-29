@@ -3,17 +3,56 @@
 Simple Python wrapper for thermal camera
 
 This provides a simplified interface to the thermal camera with common use cases.
+Handles DLL loading on Windows automatically.
 """
 
 import numpy as np
 import time
+import os
+import platform
 from typing import Tuple, Optional, Union
+
+def _setup_dll_path():
+    """Add DLL directory to PATH on Windows"""
+    if platform.system().lower() == 'windows':
+        # Get the directory of this module
+        module_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Determine architecture
+        is_64bit = platform.machine().endswith('64')
+        
+        if is_64bit:
+            dll_dir = os.path.join(module_dir, 'libs', 'win', 'x64', 'dll')
+        else:
+            dll_dir = os.path.join(module_dir, 'libs', 'win', 'Win32', 'dll')
+        
+        if os.path.exists(dll_dir):
+            # Add DLL directory to PATH
+            current_path = os.environ.get('PATH', '')
+            if dll_dir not in current_path:
+                os.environ['PATH'] = dll_dir + os.pathsep + current_path
+            
+            # For Python 3.8+, also use os.add_dll_directory
+            if hasattr(os, 'add_dll_directory'):
+                try:
+                    os.add_dll_directory(dll_dir)
+                except (OSError, AttributeError):
+                    pass  # Fallback to PATH method
+            
+            print(f"Added DLL directory to search path: {dll_dir}")
+        else:
+            print(f"Warning: DLL directory not found: {dll_dir}")
+
+# Setup DLL path before importing the extension
+_setup_dll_path()
+
+# Import the thermal camera extension
 try:
     import tiny_thermal_camera
 except ImportError:
     tiny_thermal_camera = None
     print("Warning: tiny_thermal_camera module not found. Please build first with:")
-    print("python3 setup.py build_ext --inplace")
+    print("python setup_crossplatform.py build_ext --inplace")
 
 
 class TinyThermalCamera:
