@@ -241,6 +241,88 @@ private:
             temp_frame_buffer = nullptr;
         }
     }
+
+public:
+    // Context manager support
+    TinyThermalCamera& __enter__() {
+        if (!initialize()) {
+            throw std::runtime_error("Failed to initialize camera system");
+        }
+        if (!open_camera()) {
+            throw std::runtime_error("Failed to open camera");
+        }
+        return *this;
+    }
+    
+    void __exit__(py::object exc_type, py::object exc_value, py::object traceback) {
+        cleanup();
+    }
+    
+    // Convenience methods for wrapper compatibility
+    py::tuple capture_frame() {
+        py::array_t<uint16_t> temp_frame = get_raw_frame();
+        py::array_t<uint8_t> image_frame; // Empty for now, could be expanded
+        return py::make_tuple(temp_frame, image_frame);
+    }
+    
+    py::dict get_temperature_stats(py::array_t<uint16_t> temp_frame) {
+        if (temp_frame.size() == 0) {
+            return py::dict();
+        }
+        
+        auto buf = temp_frame.request();
+        uint16_t* ptr = (uint16_t*)buf.ptr;
+        size_t size = temp_frame.size();
+        
+        uint16_t min_raw = 65535, max_raw = 0;
+        uint64_t sum_raw = 0;
+        
+        for (size_t i = 0; i < size; i++) {
+            uint16_t val = ptr[i];
+            if (val < min_raw) min_raw = val;
+            if (val > max_raw) max_raw = val;
+            sum_raw += val;
+        }
+        
+        // Local temperature conversion
+        auto to_celsius = [](uint16_t temp_val) { return ((double)temp_val / 64.0 - 273.15); };
+        
+        py::dict stats;
+        stats["min"] = to_celsius(min_raw);
+        stats["max"] = to_celsius(max_raw);
+        stats["mean"] = to_celsius(sum_raw / size);
+        stats["range"] = to_celsius(max_raw) - to_celsius(min_raw);
+        
+        return stats;
+    }
+    
+    py::tuple find_hotspot(py::array_t<uint16_t> temp_frame) {
+        if (temp_frame.ndim() != 2 || temp_frame.size() == 0) {
+            return py::make_tuple(py::make_tuple(0, 0), 0.0f);
+        }
+        
+        auto buf = temp_frame.request();
+        uint16_t* ptr = (uint16_t*)buf.ptr;
+        
+        uint16_t max_temp = 0;
+        int max_x = 0, max_y = 0;
+        
+        for (int y = 0; y < buf.shape[0]; y++) {
+            for (int x = 0; x < buf.shape[1]; x++) {
+                uint16_t temp = ptr[y * buf.shape[1] + x];
+                if (temp > max_temp) {
+                    max_temp = temp;
+                    max_x = x;
+                    max_y = y;
+                }
+            }
+        }
+        
+        // Local temperature conversion
+        auto to_celsius = [](uint16_t temp_val) { return ((double)temp_val / 64.0 - 273.15); };
+        
+        return py::make_tuple(py::make_tuple(max_x, max_y), to_celsius(max_temp));
+    }
 };
 
 class TemperatureProcessor {
@@ -322,11 +404,19 @@ PYBIND11_MODULE(tiny_thermal_camera, m) {
         .def("start_stream", &TinyThermalCamera::start_streaming, "Start camera streaming",
              py::arg("enable_temperature_mode") = true,
              py::arg("wait_seconds") = 5)
+        .def("start_streaming", &TinyThermalCamera::start_streaming, "Start camera streaming (alias)",
+             py::arg("enable_temperature_mode") = true,
+             py::arg("wait_seconds") = 5)
         .def("stop_stream", &TinyThermalCamera::stop_streaming, "Stop camera streaming")
         .def("get_camera_info", &TinyThermalCamera::get_camera_info, "Get camera information (width, height, fps)")
         .def("get_raw_frame", &TinyThermalCamera::get_raw_frame, "Get raw frame as numpy array")
         .def("is_open", &TinyThermalCamera::is_camera_open, "Check if camera is open")
-        .def("is_streaming", &TinyThermalCamera::is_camera_streaming, "Check if camera is streaming");
+        .def("is_streaming", &TinyThermalCamera::is_camera_streaming, "Check if camera is streaming")
+        .def("__enter__", &TinyThermalCamera::__enter__, "Context manager entry")
+        .def("__exit__", &TinyThermalCamera::__exit__, "Context manager exit")
+        .def("capture_frame", &TinyThermalCamera::capture_frame, "Capture temperature and image frames")
+        .def("get_temperature_stats", &TinyThermalCamera::get_temperature_stats, "Get temperature statistics")
+        .def("find_hotspot", &TinyThermalCamera::find_hotspot, "Find hottest point in temperature frame");
     
     py::class_<TemperatureProcessor>(m, "TemperatureProcessor")
         .def_static("temp_to_celsius", &TemperatureProcessor::temp_to_celsius, 

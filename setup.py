@@ -34,16 +34,16 @@ ext_modules = [
             ".",
         ] + [flag[2:] for flag in opencv_cflags if flag.startswith('-I')],  # Extract -I paths
         
+        # Mix of static thermal libs and dynamic system libs
+        extra_objects=[
+            "./libs/linux/x86-linux_libs/libiruvc.a",
+            "./libs/linux/x86-linux_libs/libirtemp.a", 
+            "./libs/linux/x86-linux_libs/libirprocess.a",
+            "./libs/linux/x86-linux_libs/libirparse.a",
+        ],
+        
         libraries=[
-            "iruvc", "irtemp", "irprocess", "irparse", "pthread", "m"
-        ],
-        
-        library_dirs=[
-            "./libs/linux/x86-linux_libs",
-        ],
-        
-        runtime_library_dirs=[
-            "./libs/linux/x86-linux_libs",
+            "usb-1.0", "pthread", "m"  # Use system libusb instead of static
         ],
         
         language='c++',
@@ -60,7 +60,7 @@ ext_modules = [
         ] + [flag for flag in opencv_cflags if not flag.startswith('-I')],
         
         extra_link_args=[
-            "-Wl,-rpath,./libs/linux/x86-linux_libs",
+            # Static linking - no rpath needed
         ],
     ),
 ]

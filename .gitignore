@@ -263,3 +263,113 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# ============================================================================
+# Python Thermal Camera Project Specific
+# ============================================================================
+
+# Python compiled bytecode
+*.pyo
+*.pyd
+__pycache__/
+.Python
+
+# Python setuptools/distribution
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
+# Python virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Python package management
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# Compiled Python extensions (C++)
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# CMake build files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Makefile artifacts
+Makefile.bak
+
+# Thermal camera specific compiled objects
+sample
+tiny_thermal_camera.cpython-*.so
+thermal_camera.cpython-*.so
+thermal_camera_simple.cpython-*.so
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Log files
+*.log
+debug.log
+
+# Test output
+test_results/
+test_output/
+temp_output/
+
+# Python packaging
+*.whl
+
+# Environment variables
+.env
+.envrc
+
+# MyPy cache
+.mypy_cache/
+.dmypy.json
+dmypy.json
