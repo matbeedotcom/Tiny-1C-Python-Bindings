@@ -65,7 +65,7 @@ Repository = "https://github.com/matbeedotcom/Tiny-1C-Python-Bindings.git"
 "Bug Tracker" = "https://github.com/matbeedotcom/Tiny-1C-Python-Bindings/issues"
 
 [tool.setuptools]
-packages = {find = {where = ["src"]}}
+py-modules = ["tiny_thermal_camera"]
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]

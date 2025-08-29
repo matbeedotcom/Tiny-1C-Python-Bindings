@@ -122,16 +122,8 @@ _lib_setup_success = setup_library_search_path()
 
 # Import the main thermal camera extension module after setting up library paths
 try:
-    # Import the compiled extension module
-    try:
-        # Try importing the extension module by searching for it
-        import importlib.util
-        
-        # First try to import from the installed location
-        from . import tiny_thermal_camera as _ttc_extension
-    except ImportError:
-        # If that fails, try importing from the global namespace (development mode)
-        import tiny_thermal_camera as _ttc_extension
+    # Import the compiled extension module directly
+    import tiny_thermal_camera as _ttc_extension
     
     # Make the extension functions available directly from this package
     for attr in dir(_ttc_extension):
