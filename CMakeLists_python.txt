@@ -1,0 +1,91 @@
+cmake_minimum_required(VERSION 3.12)
+project(thermal_camera_python)
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find Python and pybind11
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(pybind11 REQUIRED)
+
+# Find OpenCV
+find_package(OpenCV REQUIRED)
+
+# Include directories
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${OpenCV_INCLUDE_DIRS}
+)
+
+# Library directories
+link_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/linux/x86-linux_libs
+)
+
+# Python module
+pybind11_add_module(thermal_camera_simple 
+    python_bindings_simple.cpp
+)
+
+# Link libraries
+target_link_libraries(thermal_camera_simple PRIVATE
+    iruvc
+    irtemp
+    irprocess
+    irparse
+    pthread
+    m
+    ${OpenCV_LIBS}
+)
+
+# Set rpath
+set_target_properties(thermal_camera_simple PROPERTIES
+    INSTALL_RPATH "${CMAKE_CURRENT_SOURCE_DIR}/libs/linux/x86-linux_libs"
+    BUILD_WITH_INSTALL_RPATH TRUE
+)
+
+# Compile definitions
+target_compile_definitions(thermal_camera_simple PRIVATE
+    IMAGE_AND_TEMP_OUTPUT
+    linux
+)
+
+# Optional: Build the C++ sample application
+add_executable(sample
+    sample.cpp
+    camera.cpp
+    temperature.cpp
+    data.cpp
+    display.cpp
+    cmd.cpp
+)
+
+target_link_libraries(sample
+    iruvc
+    irtemp
+    irprocess
+    irparse
+    pthread
+    m
+    ${OpenCV_LIBS}
+)
+
+set_target_properties(sample PROPERTIES
+    INSTALL_RPATH "${CMAKE_CURRENT_SOURCE_DIR}/libs/linux/x86-linux_libs"
+    BUILD_WITH_INSTALL_RPATH TRUE
+)
+
+target_compile_definitions(sample PRIVATE
+    IMAGE_AND_TEMP_OUTPUT
+)
+
+# Install targets
+install(TARGETS thermal_camera_simple
+    LIBRARY DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+install(TARGETS sample
+    RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}
+)

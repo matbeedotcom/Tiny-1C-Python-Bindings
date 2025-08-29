@@ -1,0 +1,79 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel",
+    "pybind11>=2.6.0",
+    "numpy>=1.15.0"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "thermal-camera-sdk"
+version = "1.0.0"
+description = "Python bindings for P2/Tiny1C thermal camera SDK"
+readme = "README_python.md"
+requires-python = ">=3.6"
+license = {text = "MIT"}
+authors = [
+    {name = "Thermal Camera SDK", email = ""},
+]
+keywords = ["thermal", "camera", "temperature", "imaging", "P2", "Tiny1C"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    "numpy>=1.15.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "black",
+    "flake8",
+    "mypy",
+]
+visualization = [
+    "opencv-python>=4.0.0",
+    "matplotlib>=3.0.0",
+]
+all = [
+    "thermal-camera-sdk[dev,visualization]",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/thermal-camera-sdk"
+Documentation = "https://github.com/yourusername/thermal-camera-sdk/blob/main/README_python.md"
+Repository = "https://github.com/yourusername/thermal-camera-sdk.git"
+"Bug Tracker" = "https://github.com/yourusername/thermal-camera-sdk/issues"
+
+[tool.setuptools]
+packages = []
+py-modules = []
+
+[tool.setuptools.package-data]
+"*" = ["*.so", "*.pyd", "*.dll"]
+
+[tool.cibuildwheel]
+build = "cp36-* cp37-* cp38-* cp39-* cp310-* cp311-*"
+skip = "*-win32 *-manylinux_i686 *-musllinux*"
+test-skip = "*"
+
+[tool.cibuildwheel.linux]
+before-build = "pip install pybind11 numpy"
+repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"

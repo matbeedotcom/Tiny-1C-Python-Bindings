@@ -1,0 +1,5 @@
+libirsample 1.2.5
+libirprocess 0.8.3
+libirparse 1.0.0
+libirtemp 1.0.0
+libiruvc 2.0.0
