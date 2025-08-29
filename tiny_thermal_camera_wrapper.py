@@ -16,7 +16,7 @@ except ImportError:
     print("python3 setup.py build_ext --inplace")
 
 
-class SimpleThermalCamera:
+class TinyThermalCamera:
     """Simplified thermal camera interface"""
     
     def __init__(self):
@@ -256,7 +256,7 @@ def quick_capture() -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
         Tuple[Optional[np.ndarray], Optional[np.ndarray]]: (temp_frame, image_frame)
     """
     try:
-        with SimpleThermalCamera() as camera:
+        with TinyThermalCamera() as camera:
             if camera.start_streaming():
                 return camera.capture_frame()
     except Exception as e:
@@ -278,7 +278,7 @@ def quick_temperature_at_point(x: int, y: int) -> Optional[float]:
     temp_frame, _ = quick_capture()
     if temp_frame is not None:
         try:
-            with SimpleThermalCamera() as camera:
+            with TinyThermalCamera() as camera:
                 return camera.get_point_temperature(temp_frame, x, y)
         except Exception:
             pass
@@ -290,7 +290,7 @@ if __name__ == "__main__":
     print("Simple Thermal Camera Test")
     
     try:
-        with SimpleThermalCamera() as camera:
+        with TinyThermalCamera() as camera:
             print("Camera opened successfully")
             
             width, height, fps = camera.get_camera_info()

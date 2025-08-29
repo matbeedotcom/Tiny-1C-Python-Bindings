@@ -118,11 +118,11 @@ camera.stop_stream()
 camera.close()
 ```
 
-### Advanced Usage with SimpleThermalCamera wrapper
+### Advanced Usage with TinyThermalCamera wrapper
 ```python
-from tiny_thermal_camera import SimpleThermalCamera
+from tiny_thermal_camera import TinyThermalCamera
 
-with SimpleThermalCamera() as camera:
+with TinyThermalCamera() as camera:
     if camera.start_streaming():
         temp_frame, _ = camera.capture_frame()
         stats = camera.get_temperature_stats(temp_frame)

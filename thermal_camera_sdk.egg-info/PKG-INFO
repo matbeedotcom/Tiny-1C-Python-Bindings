@@ -82,10 +82,10 @@ pip install .
 ### Quick Start
 
 ```python
-from tiny_thermal_camera import SimpleThermalCamera
+from tiny_thermal_camera import TinyThermalCamera
 
 # Context manager automatically handles open/close
-with SimpleThermalCamera() as camera:
+with TinyThermalCamera() as camera:
     # Start streaming (waits 5s for P2 series stabilization)
     if camera.start_streaming():
         # Capture a frame
@@ -180,11 +180,11 @@ Basic functionality test with temperature statistics.
 - `get_rect_temp(frame, x, y, w, h)` - Get area temperature stats
 - `get_line_temp(frame, x1, y1, x2, y2)` - Get line temperature stats
 
-### SimpleThermalCamera Class
+### TinyThermalCamera Class
 
 #### Context Manager Support
 ```python
-with SimpleThermalCamera() as camera:
+with TinyThermalCamera() as camera:
     # Automatic open/close
     pass
 ```

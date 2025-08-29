@@ -14,7 +14,7 @@
 namespace py = pybind11;
 
 // Simple wrapper that uses only the basic library functions
-class SimpleThermalCamera {
+class TinyThermalCamera {
 private:
     bool is_initialized;
     bool is_open;
@@ -28,11 +28,11 @@ private:
     uint32_t temp_width, temp_height;
 
 public:
-    SimpleThermalCamera() : is_initialized(false), is_open(false), is_streaming(false),
+    TinyThermalCamera() : is_initialized(false), is_open(false), is_streaming(false),
                            raw_frame_buffer(nullptr), image_frame_buffer(nullptr), 
                            temp_frame_buffer(nullptr), frame_size(0) {}
     
-    ~SimpleThermalCamera() {
+    ~TinyThermalCamera() {
         cleanup();
     }
 
@@ -312,21 +312,21 @@ public:
 PYBIND11_MODULE(tiny_thermal_camera, m) {
     m.doc() = "Python bindings for Tiny Thermal Camera SDK";
     
-    py::class_<SimpleThermalCamera>(m, "ThermalCamera")
+    py::class_<TinyThermalCamera>(m, "ThermalCamera")
         .def(py::init<>())
-        .def("initialize", &SimpleThermalCamera::initialize, "Initialize the camera system")
-        .def("get_device_list", &SimpleThermalCamera::get_device_list, "Get list of available thermal cameras")
-        .def("open", &SimpleThermalCamera::open_camera, "Open thermal camera", 
+        .def("initialize", &TinyThermalCamera::initialize, "Initialize the camera system")
+        .def("get_device_list", &TinyThermalCamera::get_device_list, "Get list of available thermal cameras")
+        .def("open", &TinyThermalCamera::open_camera, "Open thermal camera", 
              py::arg("vid") = 0x0BDA, py::arg("pid") = 0x5840)
-        .def("close", &SimpleThermalCamera::close_camera, "Close thermal camera")
-        .def("start_stream", &SimpleThermalCamera::start_streaming, "Start camera streaming",
+        .def("close", &TinyThermalCamera::close_camera, "Close thermal camera")
+        .def("start_stream", &TinyThermalCamera::start_streaming, "Start camera streaming",
              py::arg("enable_temperature_mode") = true,
              py::arg("wait_seconds") = 5)
-        .def("stop_stream", &SimpleThermalCamera::stop_streaming, "Stop camera streaming")
-        .def("get_camera_info", &SimpleThermalCamera::get_camera_info, "Get camera information (width, height, fps)")
-        .def("get_raw_frame", &SimpleThermalCamera::get_raw_frame, "Get raw frame as numpy array")
-        .def("is_open", &SimpleThermalCamera::is_camera_open, "Check if camera is open")
-        .def("is_streaming", &SimpleThermalCamera::is_camera_streaming, "Check if camera is streaming");
+        .def("stop_stream", &TinyThermalCamera::stop_streaming, "Stop camera streaming")
+        .def("get_camera_info", &TinyThermalCamera::get_camera_info, "Get camera information (width, height, fps)")
+        .def("get_raw_frame", &TinyThermalCamera::get_raw_frame, "Get raw frame as numpy array")
+        .def("is_open", &TinyThermalCamera::is_camera_open, "Check if camera is open")
+        .def("is_streaming", &TinyThermalCamera::is_camera_streaming, "Check if camera is streaming");
     
     py::class_<TemperatureProcessor>(m, "TemperatureProcessor")
         .def_static("temp_to_celsius", &TemperatureProcessor::temp_to_celsius, 
