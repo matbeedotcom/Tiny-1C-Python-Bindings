@@ -255,7 +255,10 @@ public:
     }
     
     void __exit__(py::object exc_type, py::object exc_value, py::object traceback) {
-        cleanup();
+        // Context manager only handles initialization and opening
+        // Stream and camera connection should persist for continued use
+        // User must explicitly call stop_stream() and close() when done
+        // This allows the camera object to be used after the 'with' block
     }
     
     // Convenience methods for wrapper compatibility

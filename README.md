@@ -125,6 +125,9 @@ python3 test_continuous.py
 
 # Context manager test
 python3 test.py
+
+# Context manager persistence test
+python3 test_context_persistence.py
 ```
 
 ## API Reference
@@ -135,10 +138,18 @@ python3 test.py
 ```python
 import tiny_thermal_camera
 
-# Automatic initialization, opening, and cleanup
+# Context manager handles initialization and opening
 with tiny_thermal_camera.ThermalCamera() as camera:
-    # Camera is ready to use
-    pass
+    # Camera is initialized and opened
+    camera.start_streaming()  # User controls streaming
+
+# Camera and stream remain active after context manager exits!
+# This allows for continuous monitoring beyond the 'with' block
+temp_frame, _ = camera.capture_frame()  # Still works!
+
+# User explicitly controls cleanup when ready
+camera.stop_stream()
+camera.close()
 ```
 
 #### Core Methods
@@ -191,6 +202,48 @@ with tiny_thermal_camera.ThermalCamera() as camera:
         if temp_frame is not None:
             hot_pos, hot_temp = camera.find_hotspot(temp_frame)
             print(f"Hottest point: {hot_temp:.1f}°C at {hot_pos}")
+```
+
+#### Continuous Temperature Monitoring
+```python
+import tiny_thermal_camera
+import time
+
+# Initialize camera with context manager
+with tiny_thermal_camera.ThermalCamera() as camera:
+    camera.start_streaming()
+
+# Stream persists beyond context manager - continuous monitoring
+print("Starting continuous temperature monitoring...")
+print("Press Ctrl+C to stop")
+
+try:
+    frame_count = 0
+    while True:
+        temp_frame, _ = camera.capture_frame()
+        if temp_frame is not None:
+            frame_count += 1
+            
+            # Get temperature statistics
+            stats = camera.get_temperature_stats(temp_frame)
+            hot_pos, hot_temp = camera.find_hotspot(temp_frame)
+            
+            # Print status every 10 frames
+            if frame_count % 10 == 0:
+                print(f"Frame {frame_count}: "
+                      f"Avg: {stats['mean']:.1f}°C, "
+                      f"Range: {stats['min']:.1f}-{stats['max']:.1f}°C, "
+                      f"Hotspot: {hot_temp:.1f}°C at {hot_pos}")
+        
+        time.sleep(0.1)  # ~10 FPS
+
+except KeyboardInterrupt:
+    print("\nStopping monitoring...")
+finally:
+    # Clean up when done
+    camera.stop_stream()
+    camera.close()
+    print("Cleanup completed.")
 ```
 
 ## Troubleshooting
