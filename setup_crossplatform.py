@@ -204,20 +204,24 @@ def create_extension(system, arch):
         else:
             # Use static libraries (default)
             lib_files = ['libiruvc', 'libirtemp', 'libirprocess', 'libirparse']
-            
+
             # Check for MIPS (limited libraries)
             if 'mips' in lib_path:
                 lib_files = ['libirtemp', 'libirprocess', 'libirparse']  # No libiruvc for MIPS
-            
+
             for lib in lib_files:
                 lib_file = f"{lib_path}/{lib}.a"
                 if os.path.exists(lib_file):
                     extra_objects.append(lib_file)
                 else:
                     print(f"Warning: {lib_file} not found")
-        
-        # Linux system libraries
-        libraries.extend(['usb-1.0', 'pthread', 'm'])
+
+        # Use system libusb-1.0 (auditwheel will bundle it into the wheel)
+        # Note: bundled libusb-1.0.a is not compiled with -fPIC and cannot be used
+        libraries.append('usb-1.0')
+
+        # Linux system libraries (pthread and math)
+        libraries.extend(['pthread', 'm'])
         define_macros.append(("linux", None))
         
         # GCC compiler flags
