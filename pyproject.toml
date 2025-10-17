@@ -94,5 +94,5 @@ manylinux-aarch64-image = "manylinux2014"
 
 [tool.cibuildwheel.windows]
 before-build = "pip install pybind11 numpy"
-# delvewheel will bundle DLLs
-repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
+# delvewheel will bundle DLLs with explicit path to avoid permission issues
+repair-wheel-command = "delvewheel repair --add-path libs/win/x64/dll -w {dest_dir} {wheel}"

@@ -61,7 +61,7 @@ jobs:
 
           # Repair wheels (embed libraries)
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: auditwheel repair -w {dest_dir} {wheel}
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel}
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path libs/win/x64/dll -w {dest_dir} {wheel}
 
       - name: Install delvewheel for Windows DLL bundling
         if: runner.os == 'Windows'
