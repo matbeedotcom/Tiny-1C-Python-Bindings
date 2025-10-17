@@ -15,17 +15,35 @@ Cross-platform Python bindings for the AC010_256 thermal camera SDK, supporting 
 
 ## Installation
 
-### Simple Installation
+### Simple Installation (Recommended)
 
 ```bash
-# Install from PyPI (when available)
+# Install pre-compiled wheel from PyPI
 pip install tiny-thermal-camera
+```
 
-# Or install from source
+**Pre-compiled wheels available for:**
+- **Windows**: Python 3.8-3.12 (x64) - **No build tools required!**
+- **Linux**: Python 3.8-3.12 (x86_64, aarch64)
+
+**Benefits:**
+- No C++ compiler or build tools needed
+- Instant installation
+- All libraries bundled automatically
+- Works out of the box
+
+### Alternative: Install from Source
+
+```bash
+# Install from source (requires build tools)
 pip install .
 ```
 
-**That's it!** The package automatically:
+**Note:** Building from source requires:
+- **Windows**: [Microsoft Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) - See [WINDOWS_INSTALL.md](WINDOWS_INSTALL.md)
+- **Linux**: GCC, Python development headers
+
+**After installation, the package automatically:**
 - Detects your platform (Windows/Linux/macOS) and architecture (x86/ARM/MIPS)
 - Includes all necessary libraries and DLLs
 - Sets up runtime library loading
@@ -34,9 +52,10 @@ pip install .
 ### Platform-Specific Notes
 
 #### Windows
+- **Pre-compiled wheels available** - no build tools needed!
 - All required DLLs are automatically included and loaded
 - No additional Visual C++ Redistributable installation needed
-- Supports both 32-bit and 64-bit Python
+- For build-from-source instructions, see [WINDOWS_INSTALL.md](WINDOWS_INSTALL.md)
 
 #### Linux
 - Static library linking used by default (no runtime dependencies)
@@ -390,6 +409,34 @@ with tiny_thermal_camera.ThermalCamera() as camera:
 - **Embedded ARM**: arm-himix100-linux, arm-himix200-linux, arm-hisiv300/500-linux
 - **MIPS**: mips-linux-gnu (limited library support)
 - **Custom**: Support for buildroot and musl toolchains
+
+## Building Wheels & Releasing
+
+### For Maintainers
+
+**Quick local wheel build:**
+```bash
+# Windows
+build_wheel.bat
+
+# Linux
+./build_wheel.sh
+```
+
+**Automated release process** via GitHub Actions:
+1. Update version in `pyproject.toml`
+2. Create and push tag: `git tag v1.x.x && git push origin v1.x.x`
+3. GitHub Actions automatically builds and publishes wheels to PyPI
+
+See [RELEASING.md](RELEASING.md) for detailed release instructions.
+
+### Contributing
+
+Contributions are welcome! Please ensure:
+- Code follows existing style
+- Tests pass (if applicable)
+- Documentation is updated
+- Pre-compiled wheels build successfully
 
 ## License
 

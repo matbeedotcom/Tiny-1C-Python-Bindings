@@ -13,7 +13,7 @@ version = "1.0.0"
 description = "Python bindings for P2/Tiny1C thermal camera SDK"
 readme = "README.md"
 requires-python = ">=3.6"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Thermal Camera SDK", email = "mail@matbee.com"},
 ]
@@ -22,7 +22,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: POSIX :: Linux",
     "Operating System :: Microsoft :: Windows",
     "Programming Language :: C++",
@@ -73,10 +72,27 @@ package-dir = {"" = "src"}
 "*" = ["*.so", "*.pyd", "*.dll"]
 
 [tool.cibuildwheel]
-build = "cp36-* cp37-* cp38-* cp39-* cp310-* cp311-*"
+# Build for Python 3.8 through 3.12
+build = "cp38-* cp39-* cp310-* cp311-* cp312-*"
+
+# Skip 32-bit builds and musl-based Linux
 skip = "*-win32 *-manylinux_i686 *-musllinux*"
+
+# Skip tests (requires hardware)
 test-skip = "*"
+
+# Build both x86_64 and aarch64 for Linux
+archs = ["auto", "aarch64"]
 
 [tool.cibuildwheel.linux]
 before-build = "pip install pybind11 numpy"
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
+
+# Use manylinux2014 for compatibility
+manylinux-x86_64-image = "manylinux2014"
+manylinux-aarch64-image = "manylinux2014"
+
+[tool.cibuildwheel.windows]
+before-build = "pip install pybind11 numpy"
+# delvewheel will bundle DLLs
+repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"

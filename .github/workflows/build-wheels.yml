@@ -1,0 +1,157 @@
+name: Build Wheels
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        # Add macos-latest if you want macOS support
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip setuptools wheel
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==2.16.5
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          # Build for CPython 3.8-3.12
+          CIBW_BUILD: cp38-* cp39-* cp310-* cp311-* cp312-*
+
+          # Skip 32-bit builds and musl on Linux
+          CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
+
+          # Build both x86_64 and aarch64 on Linux
+          CIBW_ARCHS_LINUX: x86_64 aarch64
+
+          # Only x86_64 on Windows
+          CIBW_ARCHS_WINDOWS: AMD64
+
+          # Install build dependencies
+          CIBW_BEFORE_BUILD_LINUX: pip install pybind11 numpy
+          CIBW_BEFORE_BUILD_WINDOWS: pip install pybind11 numpy
+
+          # Use cross-compilation setup script for Linux
+          CIBW_BUILD_FRONTEND: build
+
+          # Test the wheel after building (optional - disable if tests require camera hardware)
+          CIBW_TEST_SKIP: "*"  # Skip tests since they require hardware
+
+          # Repair wheels (embed libraries)
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: auditwheel repair -w {dest_dir} {wheel}
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel}
+
+      - name: Install delvewheel for Windows DLL bundling
+        if: runner.os == 'Windows'
+        run: pip install delvewheel
+
+      - name: Set up QEMU for ARM builds
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
+          retention-days: 7
+
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build dependencies
+        run: python -m pip install --upgrade pip build
+
+      - name: Build sdist
+        run: python -m build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          retention-days: 7
+
+  upload_pypi:
+    name: Upload to PyPI
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    # Only upload on tagged releases
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sdist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip-existing: true
+
+  create_release:
+    name: Create GitHub Release
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: release-assets/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sdist
+          path: release-assets/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release-assets/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
