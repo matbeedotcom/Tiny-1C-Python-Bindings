@@ -13,7 +13,7 @@ version = "1.0.0"
 description = "Python bindings for P2/Tiny1C thermal camera SDK"
 readme = "README.md"
 requires-python = ">=3.6"
-license = "MIT"
+license = {file = "LICENSE"}
 authors = [
     {name = "Thermal Camera SDK", email = "mail@matbee.com"},
 ]
@@ -81,12 +81,12 @@ skip = "*-win32 *-manylinux_i686 *-musllinux*"
 # Skip tests (requires hardware)
 test-skip = "*"
 
-# Build both x86_64 and aarch64 for Linux
-archs = ["auto", "aarch64"]
-
 [tool.cibuildwheel.linux]
 before-build = "pip install pybind11 numpy"
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
+
+# Build both x86_64 and aarch64 for Linux
+archs = ["x86_64", "aarch64"]
 
 # Use manylinux2014 for compatibility
 manylinux-x86_64-image = "manylinux2014"
@@ -94,5 +94,9 @@ manylinux-aarch64-image = "manylinux2014"
 
 [tool.cibuildwheel.windows]
 before-build = "pip install pybind11 numpy"
+
+# Only build for x64 on Windows
+archs = ["AMD64"]
+
 # delvewheel will bundle DLLs with explicit path to avoid permission issues
 repair-wheel-command = "delvewheel repair --add-path libs/win/x64/dll -w {dest_dir} {wheel}"
