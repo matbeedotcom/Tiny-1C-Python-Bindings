@@ -204,20 +204,24 @@ def create_extension(system, arch):
         else:
             # Use static libraries (default)
             lib_files = ['libiruvc', 'libirtemp', 'libirprocess', 'libirparse']
-            
+
             # Check for MIPS (limited libraries)
             if 'mips' in lib_path:
                 lib_files = ['libirtemp', 'libirprocess', 'libirparse']  # No libiruvc for MIPS
-            
+
             for lib in lib_files:
                 lib_file = f"{lib_path}/{lib}.a"
                 if os.path.exists(lib_file):
                     extra_objects.append(lib_file)
                 else:
                     print(f"Warning: {lib_file} not found")
-        
-        # Linux system libraries
-        libraries.extend(['usb-1.0', 'pthread', 'm'])
+
+        # Use system libusb-1.0 (auditwheel will bundle it into the wheel)
+        # Note: bundled libusb-1.0.a is not compiled with -fPIC and cannot be used
+        libraries.append('usb-1.0')
+
+        # Linux system libraries (pthread and math)
+        libraries.extend(['pthread', 'm'])
         define_macros.append(("linux", None))
         
         # GCC compiler flags
@@ -264,7 +268,7 @@ def prepare_dll_package():
     # Run the DLL collection script
     try:
         import subprocess
-        result = subprocess.run([sys.executable, 'scripts/setup_dll_collection.py'], 
+        result = subprocess.run([sys.executable, 'setup_dll_collection.py'], 
                               capture_output=True, text=True)
         if result.returncode != 0:
             print(f"Warning: DLL collection failed: {result.stderr}")
@@ -273,11 +277,11 @@ def prepare_dll_package():
         print(f"Warning: Could not run DLL collection: {e}")
         return []
     
-    # Check if src/tiny_thermal_camera package was updated
-    package_dir = Path("src/tiny_thermal_camera")
+    # Check if thermal_camera_sdk package was created
+    package_dir = Path("thermal_camera_sdk")
     if package_dir.exists():
         print("DLL package prepared successfully")
-        return ["tiny_thermal_camera"]
+        return ["thermal_camera_sdk"]
     else:
         print("Warning: DLL package not found")
         return []
@@ -293,24 +297,20 @@ def main():
     if cross_compile:
         print(f"Cross-compiling for: {cross_compile}")
     
-    # Prepare DLL package for Windows (if needed)
-    prepare_dll_package()
-    
-    # Find packages in src directory
-    packages = find_packages(where="src")
-    package_dir = {"": "src"}
+    # Prepare DLL package for Windows
+    packages = prepare_dll_package()
     
     # Create extension module
     ext_modules = [create_extension(system, arch)]
     
     # Package data for DLL inclusion
     package_data = {}
-    if packages and "tiny_thermal_camera" in packages:
-        package_data["tiny_thermal_camera"] = ["dlls/*.dll", "libs/*.lib"]
+    if packages:
+        package_data["thermal_camera_sdk"] = ["dlls/*.dll", "libs/*.lib"]
     
     # Run setup
     setup(
-        name="tiny-thermal-camera",
+        name="thermal-camera-sdk",
         version="1.0.0",
         author="Thermal Camera Python Bindings",
         author_email="mail@matbee.com",
@@ -328,7 +328,6 @@ def main():
         - Automatic DLL management on Windows
         """,
         packages=packages,
-        package_dir=package_dir,
         package_data=package_data,
         include_package_data=True,
         ext_modules=ext_modules,
