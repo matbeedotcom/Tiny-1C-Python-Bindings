@@ -3,7 +3,7 @@ include README.md
 include LICENSE
 include CLAUDE.md
 include pyproject.toml
-include setup_crossplatform.py
+include setup.py
 include python_bindings_tiny.cpp
 
 # Include headers

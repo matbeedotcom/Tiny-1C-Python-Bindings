@@ -20,8 +20,8 @@ build/
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
-x64/
-x86/
+/x64/
+/x86/
 bld/
 [Bb]in/
 [Oo]bj/
@@ -316,6 +316,11 @@ ipython_config.py
 *.so.*
 *.dylib
 *.dll
+
+# EXCEPTION: Allow library files in libs/ directory (needed for build)
+!libs/**/*.dll
+!libs/**/*.lib
+!libs/**/*.a
 
 # CMake build files
 CMakeCache.txt
