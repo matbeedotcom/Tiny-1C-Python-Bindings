@@ -85,12 +85,14 @@ test-skip = "*"
 before-build = "pip install pybind11 numpy"
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
 
-# Build both x86_64 and aarch64 for Linux
-archs = ["x86_64", "aarch64"]
+# Build only x86_64 for Linux (aarch64 requires local cross-compilation)
+archs = ["x86_64"]
 
 # Use manylinux2014 for compatibility
 manylinux-x86_64-image = "manylinux2014"
-manylinux-aarch64-image = "manylinux2014"
+
+# Environment to ensure static linking
+environment = {USE_SHARED = "0"}
 
 [tool.cibuildwheel.windows]
 before-build = "pip install pybind11 numpy"
