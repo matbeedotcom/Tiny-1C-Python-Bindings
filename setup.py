@@ -308,55 +308,10 @@ def main():
     if packages:
         package_data["thermal_camera_sdk"] = ["dlls/*.dll", "libs/*.lib"]
     
-    # Run setup
+    # Run setup - metadata comes from pyproject.toml
     setup(
-        name="thermal-camera-sdk",
-        version="1.0.0",
-        author="Thermal Camera Python Bindings",
-        author_email="mail@matbee.com",
-        description="Cross-platform Python bindings for P2/Tiny1C thermal camera SDK",
-        long_description="""
-        Cross-platform Python bindings for the AC010_256 thermal camera SDK.
-        Supports P2/Tiny1C thermal cameras on Windows, Linux (x86, ARM, MIPS).
-        
-        Features:
-        - Cross-platform support (Windows, Linux)
-        - Multiple architecture support (x86, ARM, MIPS)
-        - Camera control (open/close, start/stop streaming)
-        - Raw frame acquisition and temperature processing
-        - NumPy array integration
-        - Automatic DLL management on Windows
-        """,
-        packages=packages,
-        package_data=package_data,
-        include_package_data=True,
         ext_modules=ext_modules,
         cmdclass={"build_ext": build_ext},
-        zip_safe=False,
-        python_requires=">=3.6",
-        install_requires=[
-            "numpy>=1.15.0",
-            "pybind11>=2.6.0",
-        ],
-        extras_require={
-            "test": ["pytest>=6.0"],
-            "visualization": ["opencv-python>=4.0.0", "matplotlib>=3.0.0"],
-        },
-        classifiers=[
-            "Development Status :: 4 - Beta",
-            "Intended Audience :: Developers",
-            "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
-            "Programming Language :: Python :: 3.7",
-            "Programming Language :: Python :: 3.8",
-            "Programming Language :: Python :: 3.9",
-            "Programming Language :: Python :: 3.10",
-            "Programming Language :: Python :: 3.11",
-            "Operating System :: Microsoft :: Windows",
-            "Operating System :: POSIX :: Linux",
-            "Topic :: Scientific/Engineering",
-            "Topic :: Software Development :: Libraries :: Python Modules",
-        ],
     )
 
 if __name__ == "__main__":
