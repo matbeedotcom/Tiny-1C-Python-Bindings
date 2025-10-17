@@ -10,17 +10,27 @@ include python_bindings_tiny.cpp
 recursive-include include *.h *.hpp
 recursive-include libs/include *.h *.hpp
 
-# Include only x86_64 Linux libraries (for wheel builds)
-include libs/linux/x86-linux_libs/*.a
+# Include x86_64 Linux libraries (static only)
+graft libs/linux/x86-linux_libs
 
-# Include Windows libraries (both 32 and 64-bit)
-recursive-include libs/win *.lib *.dll
+# Include ALL Windows libraries (both 32 and 64-bit)
+graft libs/win
 
-# Exclude all shared libraries and other architectures
+# Exclude Linux ARM/MIPS architectures
+prune libs/linux/aarch64-linux-gnu_libs
+prune libs/linux/aarch64-none-linux-gnu_libs
+prune libs/linux/aarch64-v01c01-linux-musl_libs
+prune libs/linux/arm-buildroot-linux-uclibcgnueabihf_libs
+prune libs/linux/arm-himix100-linux_libs
+prune libs/linux/arm-himix200-linux_libs
+prune libs/linux/arm-hisiv300-linux-uclibcgnueabi_libs
+prune libs/linux/arm-hisiv500-linux-uclibcgnueabi_libs
+prune libs/linux/arm-linux-gnueabi_libs
+prune libs/linux/arm-linux-gnueabihf_libs
+prune libs/linux/mips-linux-gnu_libs
+
+# Exclude .so files from source distribution
 global-exclude *.so *.so.*
-exclude libs/linux/aarch64-*
-exclude libs/linux/arm-*
-exclude libs/linux/mips-*
 
 # Exclude build artifacts
 global-exclude *.pyc __pycache__
