@@ -286,33 +286,28 @@ def prepare_dll_package():
         print("Warning: DLL package not found")
         return []
 
-def main():
-    """Main setup function"""
-    
-    # Detect platform
-    system, arch = get_platform_info()
-    cross_compile = os.environ.get('CROSS_COMPILE', '')
-    
-    print(f"Building for: {system} / {arch}")
-    if cross_compile:
-        print(f"Cross-compiling for: {cross_compile}")
-    
-    # Prepare DLL package for Windows
-    packages = prepare_dll_package()
-    
-    # Create extension module
-    ext_modules = [create_extension(system, arch)]
-    
-    # Package data for DLL inclusion
-    package_data = {}
-    if packages:
-        package_data["thermal_camera_sdk"] = ["dlls/*.dll", "libs/*.lib"]
-    
-    # Run setup - metadata comes from pyproject.toml
-    setup(
-        ext_modules=ext_modules,
-        cmdclass={"build_ext": build_ext},
-    )
+# Detect platform and create extension (runs on module import)
+system, arch = get_platform_info()
+cross_compile = os.environ.get('CROSS_COMPILE', '')
 
-if __name__ == "__main__":
-    main()
+print(f"Building for: {system} / {arch}")
+if cross_compile:
+    print(f"Cross-compiling for: {cross_compile}")
+
+# Prepare DLL package for Windows
+packages = prepare_dll_package()
+
+# Create extension module
+ext_modules = [create_extension(system, arch)]
+
+# Package data for DLL inclusion
+package_data = {}
+if packages:
+    package_data["thermal_camera_sdk"] = ["dlls/*.dll", "libs/*.lib"]
+
+# Run setup - metadata comes from pyproject.toml
+# This runs when the module is imported by setuptools.build_meta
+setup(
+    ext_modules=ext_modules,
+    cmdclass={"build_ext": build_ext},
+)
