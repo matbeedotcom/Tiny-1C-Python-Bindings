@@ -54,7 +54,7 @@ jobs:
 
           # Install build dependencies
           CIBW_BEFORE_BUILD_LINUX: pip install pybind11 numpy
-          CIBW_BEFORE_BUILD_WINDOWS: pip install pybind11 numpy
+          CIBW_BEFORE_BUILD_WINDOWS: pip install pybind11 numpy delvewheel
 
           # Use cross-compilation setup script for Linux
           CIBW_BUILD_FRONTEND: build
@@ -65,10 +65,6 @@ jobs:
           # Repair wheels (embed libraries)
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: auditwheel repair -w {dest_dir} {wheel}
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path libs/win/x64/dll -w {dest_dir} {wheel}
-
-      - name: Install delvewheel for Windows DLL bundling
-        if: runner.os == 'Windows'
-        run: pip install delvewheel
 
       - name: Set up QEMU for ARM builds
         if: runner.os == 'Linux'
