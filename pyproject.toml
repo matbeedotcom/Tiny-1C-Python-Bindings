@@ -90,8 +90,8 @@ repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
 # Build only x86_64 for Linux (aarch64 requires local cross-compilation)
 archs = ["x86_64"]
 
-# Use manylinux2014 for compatibility
-manylinux-x86_64-image = "manylinux2014"
+# Use manylinux_2_28 (AlmaLinux 8) for working package repos
+manylinux-x86_64-image = "manylinux_2_28"
 
 # Environment to ensure static linking
 environment = {USE_SHARED = "0"}
