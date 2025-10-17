@@ -82,10 +82,7 @@ skip = "*-win32 *-manylinux_i686 *-musllinux*"
 test-skip = "*"
 
 [tool.cibuildwheel.linux]
-before-build = [
-    "yum install -y libusb-devel || apt-get update && apt-get install -y libusb-1.0-0-dev",
-    "pip install pybind11 numpy"
-]
+before-build = "yum install -y libusb-devel && pip install pybind11 numpy"
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
 
 # Build only x86_64 for Linux (aarch64 requires local cross-compilation)
