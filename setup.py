@@ -258,34 +258,6 @@ def create_extension(system, arch):
         extra_link_args=extra_link_args,
     )
 
-def prepare_dll_package():
-    """Prepare DLL package for Windows"""
-    if platform.system().lower() != 'windows':
-        return []
-    
-    print("Preparing DLL package for Windows...")
-    
-    # Run the DLL collection script
-    try:
-        import subprocess
-        result = subprocess.run([sys.executable, 'setup_dll_collection.py'], 
-                              capture_output=True, text=True)
-        if result.returncode != 0:
-            print(f"Warning: DLL collection failed: {result.stderr}")
-            return []
-    except Exception as e:
-        print(f"Warning: Could not run DLL collection: {e}")
-        return []
-    
-    # Check if thermal_camera_sdk package was created
-    package_dir = Path("thermal_camera_sdk")
-    if package_dir.exists():
-        print("DLL package prepared successfully")
-        return ["thermal_camera_sdk"]
-    else:
-        print("Warning: DLL package not found")
-        return []
-
 # Detect platform and create extension (runs on module import)
 system, arch = get_platform_info()
 cross_compile = os.environ.get('CROSS_COMPILE', '')
@@ -294,19 +266,12 @@ print(f"Building for: {system} / {arch}")
 if cross_compile:
     print(f"Cross-compiling for: {cross_compile}")
 
-# Prepare DLL package for Windows
-packages = prepare_dll_package()
-
 # Create extension module
 ext_modules = [create_extension(system, arch)]
 
-# Package data for DLL inclusion
-package_data = {}
-if packages:
-    package_data["thermal_camera_sdk"] = ["dlls/*.dll", "libs/*.lib"]
-
 # Run setup - metadata comes from pyproject.toml
 # This runs when the module is imported by setuptools.build_meta
+# Note: Windows DLL bundling is handled by delvewheel during the repair step
 setup(
     ext_modules=ext_modules,
     cmdclass={"build_ext": build_ext},
