@@ -258,13 +258,21 @@ def prepare_dll_package():
     """Prepare DLL package for Windows"""
     if platform.system().lower() != 'windows':
         return []
-    
+
+    # Check if DLL directory already exists (development setup already done)
+    package_dir = Path("src/tiny_thermal_camera")
+    dlls_dir = package_dir / "dlls"
+
+    if dlls_dir.exists() and list(dlls_dir.glob("*.dll")):
+        print("DLL package already prepared (using existing dlls/)")
+        return ["tiny_thermal_camera"]
+
     print("Preparing DLL package for Windows...")
-    
+
     # Run the DLL collection script
     try:
         import subprocess
-        result = subprocess.run([sys.executable, 'scripts/setup_dll_collection.py'], 
+        result = subprocess.run([sys.executable, 'scripts/setup_dll_collection.py'],
                               capture_output=True, text=True)
         if result.returncode != 0:
             print(f"Warning: DLL collection failed: {result.stderr}")
@@ -272,9 +280,8 @@ def prepare_dll_package():
     except Exception as e:
         print(f"Warning: Could not run DLL collection: {e}")
         return []
-    
+
     # Check if src/tiny_thermal_camera package was updated
-    package_dir = Path("src/tiny_thermal_camera")
     if package_dir.exists():
         print("DLL package prepared successfully")
         return ["tiny_thermal_camera"]
