@@ -204,24 +204,20 @@ def create_extension(system, arch):
         else:
             # Use static libraries (default)
             lib_files = ['libiruvc', 'libirtemp', 'libirprocess', 'libirparse']
-
+            
             # Check for MIPS (limited libraries)
             if 'mips' in lib_path:
                 lib_files = ['libirtemp', 'libirprocess', 'libirparse']  # No libiruvc for MIPS
-
+            
             for lib in lib_files:
                 lib_file = f"{lib_path}/{lib}.a"
                 if os.path.exists(lib_file):
                     extra_objects.append(lib_file)
                 else:
                     print(f"Warning: {lib_file} not found")
-
-        # Use system libusb-1.0 (auditwheel will bundle it into the wheel)
-        # Note: bundled libusb-1.0.a is not compiled with -fPIC and cannot be used
-        libraries.append('usb-1.0')
-
-        # Linux system libraries (pthread and math)
-        libraries.extend(['pthread', 'm'])
+        
+        # Linux system libraries
+        libraries.extend(['usb-1.0', 'pthread', 'm'])
         define_macros.append(("linux", None))
         
         # GCC compiler flags
@@ -258,21 +254,111 @@ def create_extension(system, arch):
         extra_link_args=extra_link_args,
     )
 
-# Detect platform and create extension (runs on module import)
-system, arch = get_platform_info()
-cross_compile = os.environ.get('CROSS_COMPILE', '')
+def prepare_dll_package():
+    """Prepare DLL package for Windows"""
+    if platform.system().lower() != 'windows':
+        return []
+    
+    print("Preparing DLL package for Windows...")
+    
+    # Run the DLL collection script
+    try:
+        import subprocess
+        result = subprocess.run([sys.executable, 'scripts/setup_dll_collection.py'], 
+                              capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"Warning: DLL collection failed: {result.stderr}")
+            return []
+    except Exception as e:
+        print(f"Warning: Could not run DLL collection: {e}")
+        return []
+    
+    # Check if src/tiny_thermal_camera package was updated
+    package_dir = Path("src/tiny_thermal_camera")
+    if package_dir.exists():
+        print("DLL package prepared successfully")
+        return ["tiny_thermal_camera"]
+    else:
+        print("Warning: DLL package not found")
+        return []
 
-print(f"Building for: {system} / {arch}")
-if cross_compile:
-    print(f"Cross-compiling for: {cross_compile}")
+def main():
+    """Main setup function"""
+    
+    # Detect platform
+    system, arch = get_platform_info()
+    cross_compile = os.environ.get('CROSS_COMPILE', '')
+    
+    print(f"Building for: {system} / {arch}")
+    if cross_compile:
+        print(f"Cross-compiling for: {cross_compile}")
+    
+    # Prepare DLL package for Windows (if needed)
+    prepare_dll_package()
+    
+    # Find packages in src directory
+    packages = find_packages(where="src")
+    package_dir = {"": "src"}
+    
+    # Create extension module
+    ext_modules = [create_extension(system, arch)]
+    
+    # Package data for DLL inclusion
+    package_data = {}
+    if packages and "tiny_thermal_camera" in packages:
+        package_data["tiny_thermal_camera"] = ["dlls/*.dll", "libs/*.lib"]
+    
+    # Run setup
+    setup(
+        name="tiny-thermal-camera",
+        version="1.0.0",
+        author="Thermal Camera Python Bindings",
+        author_email="mail@matbee.com",
+        description="Cross-platform Python bindings for P2/Tiny1C thermal camera SDK",
+        long_description="""
+        Cross-platform Python bindings for the AC010_256 thermal camera SDK.
+        Supports P2/Tiny1C thermal cameras on Windows, Linux (x86, ARM, MIPS).
+        
+        Features:
+        - Cross-platform support (Windows, Linux)
+        - Multiple architecture support (x86, ARM, MIPS)
+        - Camera control (open/close, start/stop streaming)
+        - Raw frame acquisition and temperature processing
+        - NumPy array integration
+        - Automatic DLL management on Windows
+        """,
+        packages=packages,
+        package_dir=package_dir,
+        package_data=package_data,
+        include_package_data=True,
+        ext_modules=ext_modules,
+        cmdclass={"build_ext": build_ext},
+        zip_safe=False,
+        python_requires=">=3.6",
+        install_requires=[
+            "numpy>=1.15.0",
+            "pybind11>=2.6.0",
+        ],
+        extras_require={
+            "test": ["pytest>=6.0"],
+            "visualization": ["opencv-python>=4.0.0", "matplotlib>=3.0.0"],
+        },
+        classifiers=[
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Developers",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX :: Linux",
+            "Topic :: Scientific/Engineering",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+        ],
+    )
 
-# Create extension module
-ext_modules = [create_extension(system, arch)]
-
-# Run setup - metadata comes from pyproject.toml
-# This runs when the module is imported by setuptools.build_meta
-# Note: Windows DLL bundling is handled by delvewheel during the repair step
-setup(
-    ext_modules=ext_modules,
-    cmdclass={"build_ext": build_ext},
-)
+if __name__ == "__main__":
+    main()

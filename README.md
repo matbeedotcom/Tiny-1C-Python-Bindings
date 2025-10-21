@@ -15,6 +15,27 @@ Cross-platform Python bindings for the AC010_256 thermal camera SDK, supporting 
 
 ## Installation
 
+### 🚀 Quick Start (Windows Users)
+
+**NEW: Automated Setup Script!**
+
+```batch
+# Run the automated setup wizard (from project root)
+setup.bat
+```
+
+This handles **everything**:
+- ✅ Builds the package
+- ✅ Checks for camera
+- ✅ Installs WinUSB driver (guided)
+- ✅ Tests your setup
+
+**See [WINDOWS_SETUP_GUIDE.md](WINDOWS_SETUP_GUIDE.md) for detailed Windows instructions.**
+
+**All setup tools:** [tools/README.md](tools/README.md)
+
+---
+
 ### Simple Installation (Recommended)
 
 ```bash
@@ -31,6 +52,8 @@ pip install tiny-thermal-camera
 - Instant installation
 - All libraries bundled automatically
 - Works out of the box
+
+**Note for Windows users**: You still need to install the WinUSB driver - see the Quick Start section above.
 
 ### Alternative: Install from Source
 
@@ -290,50 +313,222 @@ finally:
 
 ## Troubleshooting
 
-### Installation Issues
+### 🔍 Quick Diagnostics
 
-#### Import Errors
+**First time setup or having issues? Use our automated tools:**
+
+```batch
+# Windows: Complete automated setup
+setup.bat
+
+# Having issues? Run the troubleshooter
+python tools/troubleshoot.py
+```
+
+The troubleshooter is an all-in-one tool with interactive menus for:
+- Quick diagnostics
+- Driver checking/installation
+- Camera testing
+- Bug report generation
+
+See [tools/README.md](tools/README.md) for complete tool documentation.
+
+---
+
+### Common Issues & Solutions
+
+#### ❌ "Failed to open thermal camera"
+
+**Most common cause:** WinUSB driver not installed or wrong driver in use
+
+**Quick fix:**
 ```bash
-# Test basic import
-python -c "import tiny_thermal_camera; print('SUCCESS: Package installed correctly')"
+# Check current driver status
+python tools/check_driver.py
 
-# If import fails, try reinstalling
-pip uninstall tiny-thermal-camera
-pip install tiny-thermal-camera --force-reinstall
+# If WinUSB not installed, run:
+python tools/install_driver.py
 ```
 
-#### Windows DLL Issues
-- All required DLLs are automatically included
-- If you see "DLL load failed", ensure you're importing the installed package:
-```python
-# This should work from any directory
-import tiny_thermal_camera
-```
+**Manual fix:**
+1. Download [Zadig](https://zadig.akeo.ie/)
+2. Run Zadig as Administrator
+3. Options → List All Devices
+4. Select "Tiny1C" (VID_0BDA, PID_5840)
+5. Choose "WinUSB" as target driver
+6. Click "Replace Driver"
+7. Unplug and replug camera
 
-### Camera Issues
+**Why this happens:**
+- The camera SDK requires the **WinUSB** driver specifically
+- You might have libusbK or another driver installed
+- Windows doesn't automatically assign WinUSB to the device
 
-#### Camera Not Detected
-```python
-# Check for connected devices
-import tiny_thermal_camera
-camera = tiny_thermal_camera.ThermalCamera()
-success, devices = camera.get_device_list()
-print(f'Found {len(devices)} devices: {devices}')
-```
+---
 
-#### Linux USB Permissions
+#### ❌ "Camera not detected" / No devices found
+
+**Checklist:**
 ```bash
-# Check USB connection and device presence  
-lsusb | grep 0bda:5840
+# 1. Run diagnostics to see what's detected
+python tools/diagnose_camera.py
 
-# Fix USB permissions if needed
+# 2. Check USB connection
+# - Try different USB port (preferably USB 3.0)
+# - Try different USB cable
+# - Check if camera LED is on
+
+# 3. Check Device Manager (Windows)
+# Win + X → Device Manager
+# Look for:
+# - Unknown devices
+# - Yellow exclamation marks
+# - Camera under "Universal Serial Bus devices"
+```
+
+**Common causes:**
+- Camera not powered on
+- Faulty USB cable
+- USB port not working
+- Driver not installed
+
+---
+
+#### ❌ Import Error: "No module named 'tiny_thermal_camera'"
+
+**Solution:**
+```bash
+# If installing from PyPI
+pip install tiny-thermal-camera
+
+# If building from source
+python setup.py build_ext --inplace
+# or
+build_windows.bat  # Windows
+python setup_crossplatform.py build_ext --inplace  # Cross-platform
+```
+
+---
+
+#### ❌ DLL Load Failed (Windows)
+
+**Quick fix:**
+```bash
+# Clean rebuild
+python setup.py clean --all
+build_windows.bat
+
+# Verify DLLs are present
+dir libs\win\x64\dll\
+```
+
+**What to check:**
+- All DLLs in `libs/win/x64/dll/` are present
+- Using 64-bit Python (32-bit not supported)
+- Visual C++ Redistributable installed
+
+---
+
+#### ❌ "Another application is using the camera"
+
+**Solution:**
+```bash
+# Close other applications that might be using the camera
+# Check Task Manager for:
+# - Other Python processes
+# - Camera applications
+# - Video conferencing apps
+
+# If still stuck, reboot and try again
+```
+
+---
+
+#### ⚠️ Linux: Permission Denied
+
+**Temporary fix:**
+```bash
 sudo chmod 666 /dev/bus/usb/*/*
 ```
 
-#### Windows Device Access
-- Ensure camera drivers are installed
-- Check Device Manager for USB devices
-- Try different USB ports
+**Permanent fix (udev rule):**
+```bash
+# Create udev rule
+sudo nano /etc/udev/rules.d/99-thermal-camera.rules
+
+# Add this line:
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="5840", MODE="0666"
+
+# Reload rules
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+
+# Unplug and replug camera
+```
+
+---
+
+### 🛠️ Diagnostic Tools Reference
+
+| Tool | Purpose | When to Use |
+|------|---------|-------------|
+| `setup.bat` | Complete first-time setup | First time on new computer |
+| `tools/troubleshoot.py` | All-in-one diagnostics & troubleshooting | Camera not working, need help |
+| `tools/install_driver.py` | Install WinUSB driver | Driver installation needed |
+
+**Full documentation:** [tools/README.md](tools/README.md)
+
+---
+
+### 📊 Understanding the Driver Requirement (Windows)
+
+**Why do I need to install a driver?**
+
+Your application includes all the necessary **DLLs** (software libraries), but Windows needs to know which **driver** to use for the USB hardware.
+
+**What's the difference?**
+
+| Component | Bundled? | Purpose |
+|-----------|----------|---------|
+| `libiruvc.dll` | ✅ YES | Camera SDK (included) |
+| `libirtemp.dll` | ✅ YES | Processing (included) |
+| `WinUSB driver` | ❌ NO | System USB driver (Windows has it) |
+| **Driver Assignment** | ⚠️ **YOU CONFIGURE** | Tell Windows to use WinUSB for this device |
+
+**The one-time setup:** Use Zadig to tell Windows "use WinUSB for this camera"
+
+**This is normal!** Many USB devices require this (Arduino, STM32, logic analyzers, etc.)
+
+**Good news:** Our automated tools make this easy!
+
+---
+
+### 🐛 Reporting Issues
+
+If you've tried the above and still have problems:
+
+1. **Run full diagnostics:**
+   ```bash
+   python tools/diagnose_camera.py > diagnostic_report.txt
+   python tools/check_driver.py > driver_status.txt
+   ```
+
+2. **Gather information:**
+   - Device Manager screenshot (Windows)
+   - Your Python version: `python --version`
+   - Your OS version
+   - Output files from step 1
+
+3. **Create an issue** with all the above information
+
+---
+
+### 📚 Additional Resources
+
+- **Detailed Windows Guide:** [WINDOWS_SETUP_GUIDE.md](WINDOWS_SETUP_GUIDE.md)
+- **Quick Reference:** [QUICK_REFERENCE.md](QUICK_REFERENCE.md)
+- **Driver Check Guide:** [check_winusb_driver.md](check_winusb_driver.md)
+- **Tools Documentation:** [tools/README.md](tools/README.md)
 
 ### Build Issues (Development)
 

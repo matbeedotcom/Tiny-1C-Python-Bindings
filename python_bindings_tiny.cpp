@@ -85,32 +85,117 @@ public:
     }
 
     bool open_camera(int vid = 0x0BDA, int pid = 0x5840) {
-        if (is_open) return true;
-        if (!is_initialized && !initialize()) return false;
+        if (is_open) {
+            printf("[DEBUG] Camera already open\n");
+            return true;
+        }
+
+        if (!is_initialized && !initialize()) {
+            printf("[ERROR] Failed to initialize camera system before opening\n");
+            return false;
+        }
 
         DevCfg_t devs_cfg[64] = {0};
         int result = uvc_camera_list(devs_cfg);
-        if (result < 0) return false;
+        if (result < 0) {
+            printf("[ERROR] Failed to list USB devices (error code: %d)\n", result);
+            printf("        This may indicate:\n");
+            printf("        - USB subsystem not accessible\n");
+            printf("        - Insufficient permissions to access USB devices\n");
+            printf("        - USB device driver issues\n");
+#ifdef _WIN32
+            printf("        - WinUSB driver not installed for the device\n");
+#else
+            printf("        - Try: sudo chmod 666 /dev/bus/usb/*/* or setup udev rules\n");
+#endif
+            return false;
+        }
 
         // Find the device
         int dev_index = -1;
+        int device_count = 0;
+        printf("[DEBUG] Searching for device VID=0x%04X, PID=0x%04X\n", vid, pid);
+
         for (int i = 0; i < 64; i++) {
+            if (devs_cfg[i].vid == 0) break;  // End of list
+            device_count++;
+            printf("[DEBUG] Device %d: VID=0x%04X, PID=0x%04X, Name='%s'\n",
+                   i, devs_cfg[i].vid, devs_cfg[i].pid,
+                   devs_cfg[i].name ? devs_cfg[i].name : "");
+
             if (devs_cfg[i].vid == vid && devs_cfg[i].pid == pid) {
                 dev_index = i;
-                break;
+                printf("[DEBUG] Found matching device at index %d\n", dev_index);
             }
         }
 
-        if (dev_index < 0) return false;
+        if (dev_index < 0) {
+            printf("[ERROR] Thermal camera not found (VID=0x%04X, PID=0x%04X)\n", vid, pid);
+            printf("        Found %d USB device(s), but none matched the target camera\n", device_count);
+            if (device_count == 0) {
+                printf("        No USB devices detected at all\n");
+            } else {
+                printf("        Available devices are listed above\n");
+            }
+            printf("        Verify:\n");
+            printf("        - Camera is physically connected\n");
+            printf("        - Camera power LED is on\n");
+            printf("        - USB cable is functional (try a different port/cable)\n");
+            return false;
+        }
 
         // Get camera stream info
         CameraStreamInfo_t stream_info[32] = {0};
         result = uvc_camera_info_get(devs_cfg[dev_index], stream_info);
-        if (result < 0) return false;
+        if (result < 0) {
+            printf("[ERROR] Failed to get camera stream info (error code: %d)\n", result);
+            printf("        Device was found but cannot retrieve capabilities\n");
+            printf("        This may indicate:\n");
+            printf("        - Device is not responding properly\n");
+            printf("        - USB communication error\n");
+            printf("        - Device is in an invalid state (try unplugging and reconnecting)\n");
+            return false;
+        }
+
+        printf("[DEBUG] Camera supports %d stream format(s)\n",
+               stream_info[0].format != 0 ? 1 : 0);
 
         // Open the camera
+        printf("[DEBUG] Attempting to open camera...\n");
         result = uvc_camera_open(devs_cfg[dev_index]);
-        if (result < 0) return false;
+        if (result < 0) {
+            printf("[ERROR] Failed to open thermal camera (error code: %d)\n", result);
+            printf("        Device was found but cannot be opened\n");
+
+            // Specific error code guidance
+            if (result == -6) {
+                printf("\n        Error -6 typically means:\n");
+#ifdef _WIN32
+                printf("        - Camera needs to be unplugged and replugged after driver install\n");
+                printf("        - Windows may need a reboot after driver change\n");
+                printf("        - Try: Unplug camera, wait 10 seconds, plug back in\n");
+#else
+                printf("        - USB device handle cannot be opened\n");
+                printf("        - Check USB permissions\n");
+#endif
+            }
+
+            printf("\n        Common causes:\n");
+#ifdef _WIN32
+            printf("        - Another application is using the camera\n");
+            printf("        - Camera in bad state (unplug/replug fixes this)\n");
+            printf("        - Insufficient permissions (try running as Administrator)\n");
+#else
+            printf("        - Another application is using the camera (check with: lsof | grep video)\n");
+            printf("        - Insufficient USB permissions\n");
+            printf("        - Try: sudo chmod 666 /dev/bus/usb/*/* (temporary)\n");
+            printf("        - Or setup udev rule: /etc/udev/rules.d/99-thermal-camera.rules\n");
+            printf("          SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"0bda\", ATTRS{idProduct}==\"5840\", MODE=\"0666\"\n");
+#endif
+            return false;
+        }
+
+        printf("[DEBUG] Camera opened successfully\n");
 
         // Initialize command system for P2 series cameras
         vdcmd_set_polling_wait_time(10000);
