@@ -54,7 +54,7 @@ echo.
 echo Repairing wheel with delvewheel...
 for %%f in (dist\*.whl) do (
     echo Repairing: %%f
-    delvewheel repair --add-path libs/win/x64/dll -w wheelhouse "%%f"
+    delvewheel repair --add-path libs/win/x64/dll --add-dll "libiruvc.dll;libirparse.dll;libirprocess.dll;libirtemp.dll" -w wheelhouse "%%f"
     if errorlevel 1 (
         echo ERROR: delvewheel repair failed!
         exit /b 1

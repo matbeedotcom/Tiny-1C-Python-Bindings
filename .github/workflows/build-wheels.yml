@@ -64,7 +64,7 @@ jobs:
 
           # Repair wheels (embed libraries)
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: auditwheel repair -w {dest_dir} {wheel}
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path libs/win/x64/dll -w {dest_dir} {wheel}
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair --add-path libs/win/x64/dll --add-dll "libiruvc.dll;libirparse.dll;libirprocess.dll;libirtemp.dll" -w {dest_dir} {wheel}
 
       - name: Set up QEMU for ARM builds
         if: runner.os == 'Linux'
